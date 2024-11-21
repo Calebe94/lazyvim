@@ -3,8 +3,7 @@ local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   -- bootstrap lazy.nvim
   -- stylua: ignore
-  vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable",
-    lazypath })
+  vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
 end
 vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
 
@@ -85,12 +84,16 @@ require("lazy").setup({
     { 'nvim-tree/nvim-web-devicons', version = '*' },
     {
       "williamboman/mason.nvim",
-      -- opts will be merged with the parent spec
       opts = {
         ensure_installed = {
           -- python
           "ruff-lsp",
           "pyright",
+          "mypy",
+          "black",
+          "isort",
+          "flake8",
+          "blake",
 
           -- lua
           "lua-language-server",
@@ -118,68 +121,95 @@ require("lazy").setup({
       },
     },
     {
-      "williamboman/mason-lspconfig.nvim",
-    },
-    {
       "neovim/nvim-lspconfig",
       config = function()
-        require("lspconfig").ruff_lsp.setup({})
-      end
+        local lspconfig = require("lspconfig")
+
+        -- Configuração para o Pyright (LSP para Python)
+        lspconfig.pyright.setup({
+          settings = {
+            python = {
+              analysis = {
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+                diagnosticMode = "workspace",
+              },
+            },
+          },
+        })
+
+        -- Configuração para ativar integração similar ao LSP UI
+        require("lspconfig.ui.windows").default_options = {
+          border = "rounded",
+        }
+      end,
     },
-    -- change null-ls config
+
+    -- Instale e configure o null-ls para ferramentas como Black, Ruff, Flake8, Mypy, Isort, Blake
     {
       "jose-elias-alvarez/null-ls.nvim",
-      dependencies = { "mason.nvim" },
-      event = { "BufReadPre", "BufNewFile" },
+      dependencies = { "nvim-lua/plenary.nvim" },
       opts = function()
-        local mason_registry = require("mason-registry")
         local null_ls = require("null-ls")
-        local formatting = null_ls.builtins.formatting
-        local diagnostics = null_ls.builtins.diagnostics
-        local code_actions = null_ls.builtins.code_actions
-
         null_ls.setup({
-          -- debug = true, -- Turn on debug for :NullLsLog
-          debug = false,
-          -- diagnostics_format = "#{m} #{s}[#{c}]",
           sources = {
-            -- list of supported sources:
-            -- https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md
-
-            -- get from $PATH
-            diagnostics.ruff,
-            diagnostics.mypy,
-            formatting.black,
-
-            -- get from mason
-            formatting.stylua.with({
-              command = mason_registry.get_package("stylua").path,
-              extra_args = { "--indent-type", "Spaces", "--indent-width", "2" },
+            -- Formatadores
+            null_ls.builtins.formatting.black.with({
+              extra_args = { "--line-length", "88" }, -- Ajuste a largura da linha conforme necessário
             }),
-            formatting.shfmt.with({
-              command = mason_registry.get_package("shfmt").path,
-            }),
-            formatting.prettierd.with({
-              command = mason_registry.get_package("prettierd").path,
-            }),
-            formatting.rustfmt.with({
-              command = mason_registry.get_package("rustfmt").path,
-            }),
-            formatting.yamlfix.with({
-              command = mason_registry.get_package("yamlfix").path, -- requires python
-            }),
-
-            diagnostics.yamllint.with({
-              command = mason_registry.get_package("yamllint").path,
-            }),
-
-            code_actions.shellcheck.with({
-              command = mason_registry.get_package("shellcheck").path,
-            }),
+            null_ls.builtins.formatting.isort,
+            
+            -- Linters
+            null_ls.builtins.diagnostics.flake8,
+            null_ls.builtins.diagnostics.ruff,
+            null_ls.builtins.diagnostics.mypy,
+            
+            -- Outros (caso necessário)
+            null_ls.builtins.formatting.blake,
           },
+
+          -- Configuração para rodar ao salvar automaticamente
+          on_attach = function(client, bufnr)
+            -- Habilita o auto-format ao salvar
+            if client.server_capabilities.documentFormattingProvider then
+              vim.api.nvim_buf_create_user_command(bufnr, "Format", function()
+                vim.lsp.buf.format()
+              end, { desc = "Format current buffer" })
+            end
+
+            -- Habilita o auto-lint ao salvar
+            if client.server_capabilities.documentRangeFormattingProvider then
+              vim.api.nvim_create_autocmd("BufWritePre", {
+                group = vim.api.nvim_create_augroup("LSPAutoFormat", { clear = true }),
+                buffer = bufnr,
+                callback = function()
+                  vim.lsp.buf.format({ async = true })
+                end,
+              })
+            end
+          end,
         })
       end,
     },
+    { "glepnir/dashboard-nvim", event = "VimEnter" },
+
+    -- Configuração para integração com virtualenvs usando pyvenv
+    {
+      "AckslD/swenv.nvim",
+      opts = {
+        venv_dirs = { "~/.virtualenvs", "venv" }, -- Ajuste conforme necessário
+      },
+    },
+    {
+      "glepnir/lspsaga.nvim",
+      event = "BufRead",
+      opts = {
+        ui = {
+          border = "rounded",
+        },
+      },
+    },
+
     -- import any extras modules here
     -- { import = "lazyvim.plugins.extras.lang.typescript" },
     -- { import = "lazyvim.plugins.extras.lang.json" },

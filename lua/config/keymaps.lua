@@ -103,3 +103,17 @@ map("v", "<leader>*", function()
   local search_term = vim.fn.escape(vim.fn.getreg("v"), "\\") -- Escapa o texto selecionado para pesquisa
   require("telescope.builtin").live_grep({ default_text = search_term })
 end, { desc = "Live Grep com o texto selecionado" })
+
+-- +lsp
+-- ======================
+
+local opts = { noremap = true, silent = true }
+
+-- Navegação LSP
+map("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
+map("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
+map("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
+
+-- Diagnósticos
+map("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>", opts)
+map("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>", opts)
