@@ -93,7 +93,6 @@ require("lazy").setup({
           "black",
           "isort",
           "flake8",
-          "blake",
 
           -- lua
           "lua-language-server",
@@ -145,7 +144,7 @@ require("lazy").setup({
       end,
     },
 
-    -- Instale e configure o null-ls para ferramentas como Black, Ruff, Flake8, Mypy, Isort, Blake
+    -- Instale e configure o null-ls para ferramentas como Black, Ruff, Flake8, Mypy, Isort
     {
       "jose-elias-alvarez/null-ls.nvim",
       dependencies = { "nvim-lua/plenary.nvim" },
@@ -164,8 +163,6 @@ require("lazy").setup({
             null_ls.builtins.diagnostics.ruff,
             null_ls.builtins.diagnostics.mypy,
             
-            -- Outros (caso necessário)
-            null_ls.builtins.formatting.blake,
           },
 
           -- Configuração para rodar ao salvar automaticamente
