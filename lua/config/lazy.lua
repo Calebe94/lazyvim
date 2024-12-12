@@ -189,6 +189,18 @@ require("lazy").setup({
       end,
     },
     { "glepnir/dashboard-nvim", event = "VimEnter" },
+    { 
+      "terrortylor/nvim-comment",
+      config = function()
+        require('nvim_comment').setup(
+          {
+            line_mapping = "<leader>cl",
+            operator_mapping = "<leader>cc",
+            comment_chunk_text_object = "ic"
+          }
+        )
+      end
+    },
 
     -- Configuração para integração com virtualenvs usando pyvenv
     {
