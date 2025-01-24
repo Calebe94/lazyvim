@@ -201,7 +201,15 @@ require("lazy").setup({
         )
       end
     },
-
+    {
+      "OXY2DEV/markview.nvim",
+      lazy = false,      -- Recommended
+      -- ft = "markdown" -- If you decide to lazy-load anyway
+      dependencies = {
+          "nvim-treesitter/nvim-treesitter",
+          "nvim-tree/nvim-web-devicons"
+      }
+    },
     -- Configuração para integração com virtualenvs usando pyvenv
     {
       "AckslD/swenv.nvim",
