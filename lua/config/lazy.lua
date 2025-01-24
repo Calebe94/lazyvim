@@ -146,7 +146,7 @@ require("lazy").setup({
 
     -- Instale e configure o null-ls para ferramentas como Black, Ruff, Flake8, Mypy, Isort
     {
-      "jose-elias-alvarez/null-ls.nvim",
+      "nvimtools/none-ls.nvim",
       dependencies = { "nvim-lua/plenary.nvim" },
       opts = function()
         local null_ls = require("null-ls")
@@ -157,12 +157,17 @@ require("lazy").setup({
               extra_args = { "--line-length", "88" }, -- Ajuste a largura da linha conforme necessário
             }),
             null_ls.builtins.formatting.isort,
-            
+            null_ls.builtins.formatting.pyink,
+
             -- Linters
-            null_ls.builtins.diagnostics.flake8,
-            null_ls.builtins.diagnostics.ruff,
             null_ls.builtins.diagnostics.mypy,
+            null_ls.builtins.diagnostics.pydoclint,
             
+            null_ls.builtins.diagnostics.pylint.with({
+              diagnostics_postprocess = function(diagnostic)
+                diagnostic.code = diagnostic.message_id
+              end,
+            }),
           },
 
           -- Configuração para rodar ao salvar automaticamente
@@ -188,7 +193,7 @@ require("lazy").setup({
         })
       end,
     },
-    { "glepnir/dashboard-nvim", event = "VimEnter" },
+    { "nvimdev/dashboard-nvim", event = "VimEnter" },
     { 
       "terrortylor/nvim-comment",
       config = function()
@@ -232,6 +237,7 @@ require("lazy").setup({
     -- { import = "lazyvim.plugins.extras.lang.json" },
     -- { import = "lazyvim.plugins.extras.ui.mini-animate" },
     -- import/override with your plugins
+    { import = "lazyvim.plugins.extras.lsp.none-ls" },
     { import = "plugins" },
   },
   defaults = {
